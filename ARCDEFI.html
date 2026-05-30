@@ -1,0 +1,262 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcFi - Swap & Lending Hub | Arc Testnet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0e14; color: #cbd5e1; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-active { background-color: #1e293b; color: #3b82f6; border-color: #3b82f6; }
+        .glass-panel { background: rgba(22, 27, 34, 0.8); border: 1px solid #30363d; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="glass-panel border-b border-gray-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl tracking-wider shadow-lg shadow-blue-600/30">A</div>
+            <div>
+                <h1 class="text-white font-bold text-lg tracking-wide">ArcFi Protocol</h1>
+                <p class="text-xs text-blue-400 font-mono">Arc Testnet (Chain: 5042002)</p>
+            </div>
+        </div>
+
+        <!-- WALLET & FAUCET CONTROLS -->
+        <div class="flex items-center gap-3">
+            <button onclick="triggerFaucet()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+                <i class="fa-solid fa-faucet-drip text-blue-400"></i> Get Testnet Tokens
+            </button>
+            <div class="bg-blue-500/10 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-xl text-sm font-mono font-medium flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                0xQB...6789
+            </div>
+        </div>
+    </header>
+
+    <!-- LIVE USER WALLET BALANCE DASHBOARD -->
+    <div class="max-w-4xl w-full mx-auto px-4 mt-6">
+        <div class="grid grid-cols-3 gap-4 p-4 rounded-2xl glass-panel text-center">
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">USDC Balance (Gas)</p>
+                <p id="bal-USDC" class="text-xl font-bold text-white mt-1">1,000.00</p>
+            </div>
+            <div class="border-x border-gray-800">
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">WETH Balance</p>
+                <p id="bal-WETH" class="text-xl font-bold text-white mt-1">0.50</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">LINK Balance</p>
+                <p id="bal-LINK" class="text-xl font-bold text-white mt-1">100.00</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN INTERACTIVE INTERFACE -->
+    <main class="max-w-xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+        
+        <!-- MODULE TABS NAVIGATION -->
+        <div class="flex bg-[#161b22] border border-gray-800 p-1.5 rounded-2xl mb-4 gap-1">
+            <button onclick="switchTab('swap')" id="tab-swap" class="flex-1 py-3 text-center rounded-xl font-bold text-sm tracking-wide border border-transparent transition tab-active">
+                <i class="fa-solid fa-right-left mr-2"></i>Swap
+            </button>
+            <button onclick="switchTab('lending')" id="tab-lending" class="flex-1 py-3 text-center rounded-xl font-bold text-sm tracking-wide border border-transparent transition text-gray-400 hover:text-white">
+                <i class="fa-solid fa-hand-holding-dollar mr-2"></i>Lending & Borrow
+            </button>
+        </div>
+
+        <!-- SWAP MODULE PANEL -->
+        <div id="panel-swap" class="glass-panel rounded-3xl p-6 shadow-2xl relative">
+            <h2 class="text-lg font-bold text-white mb-4">Instant Token Swap</h2>
+            
+            <!-- Token Input (From) -->
+            <div class="bg-[#0b0e14] border border-gray-800 rounded-2xl p-4 mb-2">
+                <label class="text-xs text-gray-400 block mb-1">Pay</label>
+                <div class="flex justify-between items-center">
+                    <input type="number" id="swap-input" oninput="calculateSwap()" placeholder="0.0" class="bg-transparent text-2xl font-semibold text-white focus:outline-none w-2/3">
+                    <select id="swap-from-asset" onchange="calculateSwap()" class="bg-gray-800 text-white font-bold px-3 py-2 rounded-xl border border-gray-700 outline-none">
+                        <option value="USDC">USDC</option>
+                        <option value="WETH">WETH</option>
+                        <option value="LINK">LINK</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Invert Button Layout -->
+            <div class="flex justify-center -my-4 relative z-10">
+                <button class="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 border-4 border-[#161b22] text-white flex items-center justify-center transition shadow-lg">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+            </div>
+
+            <!-- Token Output (To) -->
+            <div class="bg-[#0b0e14] border border-gray-800 rounded-2xl p-4 mt-2 mb-6">
+                <label class="text-xs text-gray-400 block mb-1">Receive (Estimated)</label>
+                <div class="flex justify-between items-center">
+                    <input type="number" id="swap-output" placeholder="0.0" readonly class="bg-transparent text-2xl font-semibold text-gray-400 focus:outline-none w-2/3 cursor-not-allowed">
+                    <select id="swap-to-asset" onchange="calculateSwap()" class="bg-gray-800 text-white font-bold px-3 py-2 rounded-xl border border-gray-700 outline-none">
+                        <option value="WETH" selected>WETH</option>
+                        <option value="USDC">USDC</option>
+                        <option value="LINK">LINK</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="executeSwap()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-600/20 tracking-wide">
+                Execute Swap Transaction
+            </button>
+        </div>
+
+        <!-- LENDING & BORROW MODULE PANEL -->
+        <div id="panel-lending" class="glass-panel rounded-3xl p-6 shadow-2xl hidden">
+            <h2 class="text-lg font-bold text-white mb-4">Liquidity Market Pool</h2>
+            
+            <div class="space-y-4">
+                <!-- Asset Row 1: USDC -->
+                <div class="bg-[#0b0e14] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white">USDC Pool</span>
+                            <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded">Native Gas</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Supply APY: <span class="text-green-400 font-semibold">4.8%</span> | Borrow APY: <span class="text-red-400 font-semibold">5.5%</span></p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="openLendingModal('Supply', 'USDC')" class="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Supply</button>
+                        <button onclick="openLendingModal('Borrow', 'USDC')" class="flex-1 sm:flex-none bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Borrow</button>
+                    </div>
+                </div>
+
+                <!-- Asset Row 2: WETH -->
+                <div class="bg-[#0b0e14] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <span class="font-bold text-white">WETH Pool</span>
+                        <p class="text-xs text-gray-400 mt-1">Supply APY: <span class="text-green-400 font-semibold">3.2%</span> | Borrow APY: <span class="text-red-400 font-semibold">4.1%</span></p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="openLendingModal('Supply', 'WETH')" class="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Supply</button>
+                        <button onclick="openLendingModal('Borrow', 'WETH')" class="flex-1 sm:flex-none bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Borrow</button>
+                    </div>
+                </div>
+
+                <!-- Asset Row 3: LINK -->
+                <div class="bg-[#0b0e14] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <span class="font-bold text-white">LINK Pool</span>
+                        <p class="text-xs text-gray-400 mt-1">Supply APY: <span class="text-green-400 font-semibold">5.1%</span> | Borrow APY: <span class="text-red-400 font-semibold">6.4%</span></p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="openLendingModal('Supply', 'LINK')" class="flex-1 sm:flex-none bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Supply</button>
+                        <button onclick="openLendingModal('Borrow', 'LINK')" class="flex-1 sm:flex-none bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 font-semibold px-4 py-2 rounded-xl text-xs transition">Borrow</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- TRANSACTION NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 border border-emerald-500/50 text-white p-4 rounded-2xl shadow-2xl hidden max-w-sm z-50">
+        <div class="flex gap-3 items-center">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+            <div>
+                <p class="font-bold text-sm" id="toast-title">Transaction Confirmed</p>
+                <p class="text-xs text-gray-400 mt-0.5" id="toast-desc">Settled in sub-second on Arc Layer 1.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMIT FOR AUDITING BUTTON -->
+    <footer class="p-6 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500 bg-[#161b22]/50">
+        <div>© 2026 ArcFi Labs • Purpose-built for Arc Protocol Evaluation</div>
+        <div class="flex gap-2">
+            <span class="bg-[#21262d] border border-gray-700 px-3 py-1 rounded-md text-gray-400 font-mono">Malachite Engine Connected</span>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE ENGINE JAVASCRIPT -->
+    <script>
+        // Mocking user decentralized database ledger state
+        let balances = { USDC: 1000.00, WETH: 0.50, LINK: 100.00 };
+        const rates = { USDC: 1, WETH: 3500, LINK: 15 }; // Base valuations
+
+        function updateUI() {
+            document.getElementById('bal-USDC').innerText = balances.USDC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('bal-WETH').innerText = balances.WETH.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4});
+            document.getElementById('bal-LINK').innerText = balances.LINK.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-swap').className = "flex-1 py-3 text-center rounded-xl font-bold text-sm tracking-wide border border-transparent transition " + (tab === 'swap' ? 'tab-active' : 'text-gray-400 hover:text-white');
+            document.getElementById('tab-lending').className = "flex-1 py-3 text-center rounded-xl font-bold text-sm tracking-wide border border-transparent transition " + (tab === 'lending' ? 'tab-active' : 'text-gray-400 hover:text-white');
+            document.getElementById('panel-swap').classList.toggle('hidden', tab !== 'swap');
+            document.getElementById('panel-lending').classList.toggle('hidden', tab !== 'lending');
+        }
+
+        function triggerFaucet() {
+            balances.USDC += 500;
+            balances.LINK += 25; // Chainlink testnet parameters distribution index
+            balances.WETH += 0.1;
+            updateUI();
+            showToast("Testnet Faucet Drip Success", "+500 USDC, +25 LINK, +0.1 WETH deposited to your account.");
+        }
+
+        function calculateSwap() {
+            const amount = parseFloat(document.getElementById('swap-input').value) || 0;
+            const from = document.getElementById('swap-from-asset').value;
+            const to = document.getElementById('swap-to-asset').value;
+            if (from === to) { document.getElementById('swap-output').value = amount; return; }
+            const amountInUSD = amount * rates[from];
+            const finalOutput = amountInUSD / rates[to];
+            document.getElementById('swap-output').value = finalOutput.toFixed(4);
+        }
+
+        function executeSwap() {
+            const amount = parseFloat(document.getElementById('swap-input').value) || 0;
+            const from = document.getElementById('swap-from-asset').value;
+            const to = document.getElementById('swap-to-asset').value;
+            const outVal = parseFloat(document.getElementById('swap-output').value) || 0;
+
+            if (amount <= 0 || balances[from] < amount) { alert("Insufficient assets or invalid entry parameters."); return; }
+            
+            balances[from] -= amount;
+            balances[to] += outVal;
+            updateUI();
+            showToast("Swap Complete", `Swapped ${amount} ${from} for ${outVal.toFixed(2)} ${to} successfully.`);
+            document.getElementById('swap-input').value = "";
+            document.getElementById('swap-output').value = "";
+        }
+
+        function openLendingModal(action, asset) {
+            let amountStr = prompt(`Enter ${asset} allocation value to ${action}:`, "10");
+            let amount = parseFloat(amountStr);
+            if (isNaN(amount) || amount <= 0) return;
+
+            if (action === "Supply") {
+                if (balances[asset] < amount) { alert("Insufficient asset holdings."); return; }
+                balances[asset] -= amount;
+                showToast("Supply Transaction Finalized", `Deposited ${amount} ${asset} inside the protocol pool.`);
+            } else {
+                balances[asset] += amount;
+                showToast("Borrow Position Opened", `Borrowed ${amount} ${asset} matching debt limit profiles.`);
+            }
+            updateUI();
+        }
+
+        function showToast(title, desc) {
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-desc').innerText = desc;
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 4000);
+        }
+        
+        // Initial launch configuration
+        updateUI();
+    </script>
+</body>
+</html>
